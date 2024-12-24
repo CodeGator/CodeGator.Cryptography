@@ -1,4 +1,5 @@
-﻿global using System.Diagnostics.CodeAnalysis;
+﻿global using CodeGator.Exceptions;
+global using System.Diagnostics.CodeAnalysis;
 global using CodeGator.Cryptography;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
