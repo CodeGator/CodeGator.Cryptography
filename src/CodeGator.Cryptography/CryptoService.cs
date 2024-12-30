@@ -20,34 +20,190 @@ internal sealed class CryptoService(
     #region Key and IV methods
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateKeyAndIVAsync(
+    public Task<KeyAndIV> GenerateRandomKeyAsync(
+        CancellationToken cancellationToken = default
+        )
+    {
+        try
+        {
+            logger.LogDebug(
+                "The '{t1}' service is generating a random key and IV",
+                nameof(CryptoService)
+                );
+
+            var keyAndIV = new KeyAndIV()
+            {
+                Key = RandomNumberGenerator.GetBytes(32),
+                IV = RandomNumberGenerator.GetBytes(16)
+            };
+
+            logger.LogDebug(
+                "The '{t1}' service is returning a '{t2}' byte cryptographic key " +
+                "and a '{t3}' byte IV",
+                nameof(CryptoService),
+                keyAndIV.Key.Length,
+                keyAndIV.IV.Length
+                );
+
+            return Task.FromResult(keyAndIV);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "the '{t1}' service failed to generate a random key!",
+                nameof(CryptoService)
+                );
+
+            throw new ServiceException(
+                message: $"Failed to generate a random key!",
+                innerException: ex
+                );
+        }
+    }
+
+    // *******************************************************************
+
+    /// <inheritdoc/>
+    public Task<KeyAndIV> GenerateKeyFromPasswordAsync(
         [NotNull] string password,
-        [NotNull] string salt,
-        [NotNull] string hashAlgorithmName,
-        int rfc2898Iterations,
+        [NotNull] string hashAlgorithmName = "SHA512",
+        int rfc2898Iterations = 10000,
         CancellationToken cancellationToken = default
         )
     {
         Guard.Instance().ThrowIfNullOrEmpty(password, nameof(password))
-            .ThrowIfNullOrEmpty(salt, nameof(salt))
-            .ThrowIfNullOrEmpty(hashAlgorithmName, nameof(hashAlgorithmName))
-            .ThrowIfLessThan(rfc2898Iterations, 10000, nameof(rfc2898Iterations));
+            .ThrowIfNullOrEmpty(hashAlgorithmName, nameof(hashAlgorithmName));
 
         try
         {
+            if (rfc2898Iterations < 10000)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is set the RFC2898 iterations to " +
+                    "to a default value, since they were less than 10,000",
+                    nameof(CryptoService)
+                    );
+                rfc2898Iterations = 10000;
+            }            
+
             logger.LogDebug(
                 "The '{t1}' service is generating an AES algorithm instance",
                 nameof(CryptoService)
                 );
 
-            var hashAlgorithm = new HashAlgorithmName(
-                hashAlgorithmName
-                );
-
             using var alg = Aes.Create();
 
             logger.LogDebug(
-                "The '{t1}' service is setting the key and block sizes",
+                "The '{t1}' service is setting the key and block sizes for AES",
+                nameof(CryptoService)
+                );
+
+            alg.KeySize = 256;
+            alg.BlockSize = 128;
+
+            logger.LogDebug(
+                "The '{t1}' service is converting the password to bytes",
+                nameof(CryptoService)
+                );
+
+            var passwordBytes = Encoding.UTF8.GetBytes(
+                password
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is generating a random SALT value",
+                nameof(CryptoService)
+                );
+
+            var salt = new byte[16];
+            randomNumberGenerator.GetNonZeroBytes(
+                salt
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is creating a hash algorithm",
+                nameof(CryptoService)
+                );
+
+            var hashAlgorithm = new HashAlgorithmName( 
+                hashAlgorithmName 
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is deriving an RFC2898 based cryptographic key and IV",
+                nameof(CryptoService)
+                );
+
+            var derivedKey = new Rfc2898DeriveBytes(
+                passwordBytes,
+                salt,
+                rfc2898Iterations,
+                hashAlgorithm
+            );
+
+            var keyAndIV = new KeyAndIV()
+            {
+                Key = derivedKey.GetBytes(alg.KeySize / 8),
+                IV = derivedKey.GetBytes(alg.BlockSize / 8)
+            };
+
+            logger.LogDebug(
+                "The '{t1}' service is returning a '{t2}' byte cryptographic " +
+                "key and a '{t3}' byte IV",
+                nameof(CryptoService),
+                keyAndIV.Key.Length,
+                keyAndIV.IV.Length
+                );
+
+            return Task.FromResult(keyAndIV);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "The '{t1}' service failed to generate a key from a password!",
+                nameof(CryptoService)
+                );
+
+            throw new ServiceException(
+                message: $"Failed to generate a key from a password!",
+                innerException: ex
+                );
+        }
+    }
+
+    // *******************************************************************
+
+    /// <inheritdoc/>
+    public Task<KeyAndIV> GenerateKeyFromPasswordAndSaltAsync(
+        [NotNull] string password,
+        [NotNull] string salt,
+        [NotNull] string hashAlgorithmName = "SHA512",
+        int rfc2898Iterations = 10000,
+        CancellationToken cancellationToken = default
+        )
+    {
+        Guard.Instance().ThrowIfNullOrEmpty(password, nameof(password))
+            .ThrowIfNullOrEmpty(salt, nameof(salt))
+            .ThrowIfNullOrEmpty(hashAlgorithmName, nameof(hashAlgorithmName));
+
+        try
+        {
+            if (rfc2898Iterations < 10000)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is set the RFC2898 iterations to " +
+                    "to a default value, since they were less than 10,000",
+                    nameof(CryptoService)
+                    );
+                rfc2898Iterations = 10000;
+            }
+                        
+            using var alg = Aes.Create();
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and block sizes for AES",
                 nameof(CryptoService)
                 );
 
@@ -73,60 +229,6 @@ internal sealed class CryptoService(
                 );
 
             logger.LogDebug(
-                "The '{t1}' service is deriving an RFC2898 based cryptographic key",
-                nameof(CryptoService)
-                );
-
-            var derivedKey = new Rfc2898DeriveBytes(
-                passwordBytes,
-                saltBytes,
-                rfc2898Iterations,
-                hashAlgorithm
-                );
-
-            logger.LogDebug(
-                "The '{t1}' service is packaging Key and IV",
-                nameof(CryptoService)
-                );
-
-            var keyAndIV = new KeyAndIV()
-            {
-                Key = derivedKey.GetBytes(alg.KeySize / 8),
-                IV = derivedKey.GetBytes(alg.BlockSize / 8)
-            };
-
-            return Task.FromResult(keyAndIV);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(
-                ex,
-                "the '{t1}' service failed to generate a cryptographic Key and IV!",
-                nameof(CryptoService)
-                );
-
-            throw new ServiceException(
-                message: $"Failed to generate a cryptographic Key and IV!",
-                innerException: ex
-                );
-        }
-    }
-
-    // *******************************************************************
-
-    /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateKeyAndIVAsync(
-        [NotNull] string hashAlgorithmName = "SHA512",
-        int rfc2898Iterations = 15000,
-        CancellationToken cancellationToken = default
-        )
-    {
-        Guard.Instance().ThrowIfNullOrEmpty(hashAlgorithmName, nameof(hashAlgorithmName))
-            .ThrowIfLessThan(rfc2898Iterations, 10000, nameof(rfc2898Iterations));
-
-        try
-        {
-            logger.LogDebug(
                 "The '{t1}' service is generating an AES algorithm instance",
                 nameof(CryptoService)
                 );
@@ -135,34 +237,8 @@ internal sealed class CryptoService(
                 hashAlgorithmName
                 );
 
-            using var alg = Aes.Create();
-
             logger.LogDebug(
-                "The '{t1}' service is setting the key and block sizes",
-                nameof(CryptoService)
-                );
-
-            alg.KeySize = 256;
-            alg.BlockSize = 128;
-
-            logger.LogDebug(
-                "The '{t1}' service is generating a random password",
-                nameof(CryptoService)
-                );
-
-            var passwordBytes = new byte[alg.KeySize];
-            randomNumberGenerator.GetNonZeroBytes(passwordBytes);
-
-            logger.LogDebug(
-                "The '{t1}' service is generating a random SALT",
-                nameof(CryptoService)
-                );
-
-            var saltBytes = new byte[alg.BlockSize];
-            randomNumberGenerator.GetNonZeroBytes(saltBytes);
-
-            logger.LogDebug(
-                "The '{t1}' service is deriving an RFC2898 based cryptographic key",
+                "The '{t1}' service is deriving an RFC2898 based cryptographic key and IV",
                 nameof(CryptoService)
                 );
 
@@ -171,12 +247,7 @@ internal sealed class CryptoService(
                 saltBytes,
                 rfc2898Iterations,
                 hashAlgorithm
-                );
-
-            logger.LogDebug(
-                "The '{t1}' service is packaging Key and IV",
-                nameof(CryptoService)
-                );
+            );
 
             var keyAndIV = new KeyAndIV()
             {
@@ -184,18 +255,28 @@ internal sealed class CryptoService(
                 IV = derivedKey.GetBytes(alg.BlockSize / 8)
             };
 
+            logger.LogDebug(
+                "The '{t1}' service is returning a '{t2}' byte cryptographic " +
+                "key and a '{t3}' byte IV",
+                nameof(CryptoService),
+                keyAndIV.Key.Length,
+                keyAndIV.IV.Length
+                );
+
             return Task.FromResult(keyAndIV);
         }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
-                "the '{t1}' service failed to generate a random cryptographic Key and IV!",
+                "The '{t1}' service failed to generate a key from a " +
+                "password and a salt!",
                 nameof(CryptoService)
                 );
 
             throw new ServiceException(
-                message: $"Failed to generate a random cryptographic Key and IV!",
+                message: $"Failed to generate a key from a password " +
+                "and a salt!",
                 innerException: ex
                 );
         }
@@ -204,29 +285,32 @@ internal sealed class CryptoService(
     #endregion
 
     // *******************************************************************
-    // AES encrypt byte methods.
+    // Byte array methods.
     // *******************************************************************
 
-    #region AES encrypt byte methods
+    #region Byte array methods
 
     /// <inheritdoc/>
-    public async Task<byte[]> AesEncryptAsync(
-        [NotNull] byte[] key,
-        [NotNull] byte[] iv,
-        [AllowNull] byte[] value,
+    public Task<byte[]> AesEncryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [AllowNull] byte[] plainValue,
         CancellationToken cancellationToken = default
         )
     {
-        Guard.Instance().ThrowIfNull(key, nameof(key))
-            .ThrowIfNull(iv, nameof(iv))
-            .ThrowIfFalse(key.LongLength == 32, nameof(key))
-            .ThrowIfFalse(iv.LongLength == 16, nameof(iv));
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV));
 
         try
         {
-            if (value is null || value.Length == 0)
+            if (plainValue is null || plainValue.Length == 0)
             {
-                return [];
+                logger.LogDebug(
+                    "The '{t1}' service is returning an empty array because " +
+                    "the incoming bytes were empty.",
+                    nameof(CryptoService)
+                    );
+                return Task.FromResult(Array.Empty<byte>());
             }
 
             logger.LogDebug(
@@ -235,108 +319,88 @@ internal sealed class CryptoService(
                 );
 
             using var alg = Aes.Create();
-            
+
             logger.LogDebug(
-                "The '{t1}' service is configuring an AES algorithm instance",
+                "The '{t1}' service is setting the key and block sizes for AES",
                 nameof(CryptoService)
                 );
 
-            alg.Mode = CipherMode.CBC;
             alg.KeySize = 256;
             alg.BlockSize = 128;
-            alg.FeedbackSize = 128;
-            alg.Padding = PaddingMode.PKCS7;
-            alg.Key = key;
-            alg.IV = iv;
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and IV values for AES",
+                nameof(CryptoService)
+                );
+
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
 
             logger.LogDebug(
                 "The '{t1}' service is creating an encryptor",
                 nameof(CryptoService)
                 );
 
-            using var enc = alg.CreateEncryptor();
-            
+            using var encryptor = alg.CreateEncryptor();
+
             logger.LogDebug(
-                "The '{t1}' service is creating a memory stream",
-                nameof(CryptoService)
+                "The '{t1}' service is encrypting '{t2}' bytes",
+                nameof(CryptoService),
+                plainValue.Length
                 );
 
-            using var memStream = new MemoryStream();
-            
-            logger.LogDebug(
-                "The '{t1}' service is creating a crypto stream",
-                nameof(CryptoService)
-                );
-
-            using var cryptoStream = new CryptoStream(
-                memStream,
-                enc,
-                CryptoStreamMode.Write
+            var cipherBytes = encryptor.TransformFinalBlock(
+                plainValue,
+                0,
+                plainValue.Length
                 );
 
             logger.LogDebug(
-                "The '{t1}' service is writing plain bytes",
-                nameof(CryptoService)
+                "The '{t1}' service is returning '{t2}' encrypted bytes",
+                nameof(CryptoService),
+                cipherBytes.Length
                 );
 
-            await cryptoStream.WriteAsync(
-                value,
-                cancellationToken
-                ).ConfigureAwait(false);
-
-            await cryptoStream.FlushFinalBlockAsync(
-                cancellationToken
-                ).ConfigureAwait(false);
-
-            logger.LogDebug(
-                "The '{t1}' service is reading the encrypted bytes",
-                nameof(CryptoService)
-                );
-
-            var encrypted = memStream.ToArray();
-            return encrypted;
+            return Task.FromResult(cipherBytes);
         }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
-                "The '{t1}' service failed to AES encrypt bytes",
+                "The '{t1}' service failed to encrypt a byte array!",
                 nameof(CryptoService)
-            );
+                );
 
             throw new ServiceException(
                 innerException: ex,
-                message: $"Failed to AES encrypt bytes!"
+                message: "Failed to encrypt a byte array!"
                 );
         }
     }
 
-    #endregion
-
     // *******************************************************************
-    // AES decrypt byte methods.
-    // *******************************************************************
-
-    #region AES decrypt byte methods
 
     /// <inheritdoc/>
-    public async Task<byte[]> AesDecryptAsync(
-        [NotNull] byte[] key,
-        [NotNull] byte[] iv,
-        [AllowNull] byte[] value,
+    public Task<byte[]> AesDecryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [AllowNull] byte[] cipherValue,
         CancellationToken cancellationToken = default
         )
     {
-        Guard.Instance().ThrowIfNull(key, nameof(key))
-           .ThrowIfNull(iv, nameof(iv))
-           .ThrowIfFalse(key.LongLength == 32, nameof(key))
-           .ThrowIfFalse(iv.LongLength == 16, nameof(iv));
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV));
 
         try
         {
-            if (value is null || value.Length == 0)
+            if (cipherValue is null || cipherValue.Length == 0)
             {
-                return [];
+                logger.LogDebug(
+                    "The '{t1}' service is returning an empty array because " +
+                    "the incoming bytes were empty.",
+                    nameof(CryptoService)
+                    );
+                return Task.FromResult(Array.Empty<byte>());
             }
 
             logger.LogDebug(
@@ -345,358 +409,292 @@ internal sealed class CryptoService(
                 );
 
             using var alg = Aes.Create();
-            
+
             logger.LogDebug(
-                "The '{t1}' service is configuring an AES algorithm instance",
+                "The '{t1}' service is setting the key and block sizes for AES",
                 nameof(CryptoService)
                 );
 
-            alg.Mode = CipherMode.CBC;
             alg.KeySize = 256;
             alg.BlockSize = 128;
-            alg.FeedbackSize = 128;
-            alg.Padding = PaddingMode.PKCS7;
 
             logger.LogDebug(
-                "The '{t1}' service is setting the key and IV values",
+                "The '{t1}' service is setting the key and IV values for AES",
                 nameof(CryptoService)
                 );
 
-            alg.Key = key;
-            alg.IV = iv;
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
 
             logger.LogDebug(
                 "The '{t1}' service is creating a decryptor",
                 nameof(CryptoService)
                 );
 
-            using var dec = alg.CreateDecryptor();
-                
+            using var decryptor = alg.CreateDecryptor();
+
             logger.LogDebug(
-                "The '{t1}' service is creating a memory stream",
-                nameof(CryptoService)
+                "The '{t1}' service is decrypting '{t2}' bytes",
+                nameof(CryptoService),
+                cipherValue.Length
                 );
 
-            using var memStream = new MemoryStream();
-                    
-            logger.LogDebug(
-                "The '{t1}' service is creating a crypto stream",
-                nameof(CryptoService)
-                );
-
-            using var cryptoStream = new CryptoStream(
-                memStream,
-                dec,
-                CryptoStreamMode.Write
-                );
-                        
-            logger.LogDebug(
-                "The '{t1}' service is writing encrypted bytes",
-                nameof(CryptoService)
-                );
-
-            await cryptoStream.WriteAsync(
-                value,
+            var plainValue = decryptor.TransformFinalBlock(
+                cipherValue,
                 0,
-                value.Length,
-                cancellationToken
-                ).ConfigureAwait(false);
-
-            await cryptoStream.FlushFinalBlockAsync(
-                cancellationToken
-                ).ConfigureAwait(false);
-                        
-            logger.LogDebug(
-                "The '{t1}' service is reading the decrypted bytes",
-                nameof(CryptoService)
+                cipherValue.Length
                 );
 
-            var decrypted = memStream.ToArray();
-            return decrypted;            
+            logger.LogDebug(
+                "The '{t1}' service is returning '{t2}' decrypted bytes",
+                nameof(CryptoService),
+                plainValue.Length
+                );
+
+            return Task.FromResult(plainValue);
         }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
-                "The '{t1}' service failed to AES decrypt bytes",
+                "The '{t1}' service failed to decrypt a byte array!",
                 nameof(CryptoService)
-            );
+                );
 
             throw new ServiceException(
                 innerException: ex,
-                message: $"Failed to AES decrypt bytes!"
+                message: "Failed to decrypt a byte array!"
                 );
         }
-    }
-        
-    // *******************************************************************
-
-    /// <inheritdoc/>
-    public async Task<byte[]> AesDecryptAsync(
-        [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[] value,
-        CancellationToken cancellationToken = default
-        )
-    {
-        return await AesDecryptAsync(
-            keyAndIV.Key,
-            keyAndIV.IV,
-            value,
-            cancellationToken
-            ).ConfigureAwait(false);
     }
 
     #endregion
 
     // *******************************************************************
-    // AES encrypt string methods.
+    // String methods.
     // *******************************************************************
 
-    #region AES encrypt string methods
+    #region String methods
 
     /// <inheritdoc/>
-    public async Task<string> AesEncryptAsync(
-        [NotNull] byte[] key,
-        [NotNull] byte[] iv,
-        [AllowNull] string? value,
+    public Task<string> AesEncryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [AllowNull] string plainText,
         CancellationToken cancellationToken = default
         )
     {
-        Guard.Instance().ThrowIfNull(key, nameof(key))
-            .ThrowIfNull(iv, nameof(iv))
-            .ThrowIfFalse(key.LongLength == 32, nameof(key))
-            .ThrowIfFalse(iv.LongLength == 16, nameof(iv));
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV));
 
-        if (string.IsNullOrEmpty(value))
+        try
         {
-            return string.Empty;
-        }
+            if (plainText is null || plainText.Length == 0)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is returning an empty string because " +
+                    "the incoming string was empty.",
+                    nameof(CryptoService)
+                    );
+                return Task.FromResult(string.Empty);
+            }
 
-        logger.LogDebug(
-            "The '{t1}' service is generating an AES algorithm instance",
-            nameof(CryptoService)
-            );
-
-        using var alg = Aes.Create();
-
-        logger.LogDebug(
-            "The '{t1}' service is configuring an AES algorithm instance",
-            nameof(CryptoService)
-            );
-
-        alg.Mode = CipherMode.CBC;
-        alg.KeySize = 256;
-        alg.BlockSize = 128;
-        alg.FeedbackSize = 128;
-        alg.Padding = PaddingMode.PKCS7;
-        alg.Key = key;
-        alg.IV = iv;
-
-        logger.LogDebug(
-            "The '{t1}' service is creating an encryptor",
-            nameof(CryptoService)
-            );
-
-        using var enc = alg.CreateEncryptor();
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a memory stream",
-            nameof(CryptoService)
-            );
-
-        using var memStream = new MemoryStream();
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a crypto stream",
-            nameof(CryptoService)
-            );
-
-        using var cryptoStream = new CryptoStream(
-            memStream,
-            enc,
-            CryptoStreamMode.Write
-            );
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a stream writer",
-            nameof(CryptoService)
-            );
-
-        // Do NOT remove this using block!
-        using (var writer = new StreamWriter(cryptoStream))
-        {
             logger.LogDebug(
-                "The '{t1}' service is writing plain bytes",
+                "The '{t1}' service is generating an AES algorithm instance",
                 nameof(CryptoService)
                 );
 
-            await writer.WriteAsync(
-                value
-                ).ConfigureAwait(false);
+            using var alg = Aes.Create();
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and block sizes for AES",
+                nameof(CryptoService)
+                );
+
+            alg.KeySize = 256;
+            alg.BlockSize = 128;
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and IV values for AES",
+                nameof(CryptoService)
+                );
+
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
+
+            logger.LogDebug(
+                "The '{t1}' service is creating an encryptor",
+                nameof(CryptoService)
+                );
+
+            using var encryptor = alg.CreateEncryptor();
+
+            logger.LogDebug(
+                "The '{t1}' service is converting '{t2}' characters to bytes",
+                nameof(CryptoService),
+                plainText.Length
+                );
+
+            var plainBytes = UTF8Encoding.UTF8.GetBytes(
+                plainText
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is encrypting '{t2}' bytes",
+                nameof(CryptoService),
+                plainBytes.Length
+                );
+
+            var cipherBytes = encryptor.TransformFinalBlock(
+                plainBytes,
+                0,
+                plainBytes.Length
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is converting '{t2}' bytes to base64",
+                nameof(CryptoService),
+                cipherBytes.Length
+                );
+
+            var cypherText = Convert.ToBase64String(
+                cipherBytes
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is returning '{t2}' encrypted characters",
+                nameof(CryptoService),
+                cypherText.Length
+                );
+
+            return Task.FromResult(cypherText);
         }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "The '{t1}' service failed to encrypt a string value!",
+                nameof(CryptoService)
+                );
 
-        logger.LogDebug(
-            "The '{t1}' service is reading the encrypted bytes",
-            nameof(CryptoService)
-            );
-
-        var encryptedBytes = memStream.ToArray();
-
-        logger.LogDebug(
-            "The '{t1}' service is converting bytes to a Base64 string",
-            nameof(CryptoService)
-            );
-
-        var encryptedValue = Convert.ToBase64String(
-            encryptedBytes
-            );
-
-        return encryptedValue;
+            throw new ServiceException(
+                innerException: ex,
+                message: "Failed to encrypt a string value!"
+                );
+        }
     }
 
     // *******************************************************************
-
-    /// <inheritdoc/>
-    public async Task<string> AesEncryptAsync(
-        [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] string? value,
-        CancellationToken cancellationToken = default
-        )
-    {
-        return await AesEncryptAsync(
-            keyAndIV.Key,
-            keyAndIV.IV,
-            value,
-            cancellationToken
-            ).ConfigureAwait(false);
-    }
-
-    // *******************************************************************
-
-    /// <inheritdoc/>
-    public async Task<byte[]> AesEncryptAsync(
-        [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[] value,
-        CancellationToken cancellationToken = default
-        )
-    {
-        return await AesEncryptAsync(
-            keyAndIV.Key,
-            keyAndIV.IV,
-            value,
-            cancellationToken
-            ).ConfigureAwait(false);
-    }
-        
-    #endregion
-
-    // *******************************************************************
-    // AES decrypt string methods.
-    // *******************************************************************
-
-    #region AES decrypt string methods
 
     /// <inheritdoc/>
     public Task<string> AesDecryptAsync(
-        [NotNull] byte[] key,
-        [NotNull] byte[] iv,
-        [AllowNull] string? value,
+        [NotNull] KeyAndIV keyAndIV,
+        [AllowNull] string cipherValue,
         CancellationToken cancellationToken = default
         )
     {
-        Guard.Instance().ThrowIfNull(key, nameof(key))
-            .ThrowIfNull(iv, nameof(iv))
-            .ThrowIfFalse(key.LongLength == 32, nameof(key))
-            .ThrowIfFalse(iv.LongLength == 16, nameof(iv));
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV));
 
-        if (string.IsNullOrEmpty(value))
+        try
         {
-            return Task.FromResult(string.Empty);
-        }
+            if (cipherValue is null || cipherValue.Length == 0)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is returning an empty string because " +
+                    "the incoming string was empty.",
+                    nameof(CryptoService)
+                    );
+                return Task.FromResult(string.Empty)    ;
+            }
 
-        logger.LogDebug(
-            "The '{t1}' service is generating an AES algorithm instance",
-            nameof(CryptoService)
-            );
-
-        using var alg = Aes.Create();
-
-        logger.LogDebug(
-            "The '{t1}' service is configuring an AES algorithm instance",
-            nameof(CryptoService)
-            );
-
-        alg.Mode = CipherMode.CBC;
-        alg.KeySize = 256;
-        alg.BlockSize = 128;
-        alg.FeedbackSize = 128;
-        alg.Padding = PaddingMode.PKCS7;
-
-        alg.Key = key;
-        alg.IV = iv;
-
-        logger.LogDebug(
-            "The '{t1}' service is creating an encryptor",
-            nameof(CryptoService)
-            );
-
-        using var dec = alg.CreateDecryptor();
-
-        var encryptedBytes = Convert.FromBase64String(value);
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a memory stream",
-            nameof(CryptoService)
-            );
-
-        using var memStream = new MemoryStream(encryptedBytes);
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a crypto stream",
-            nameof(CryptoService)
-            );
-
-        using var cryptoStream = new CryptoStream(
-            memStream,
-            dec,
-            CryptoStreamMode.Read
-            );
-
-        logger.LogDebug(
-            "The '{t1}' service is creating a stream reader",
-            nameof(CryptoService)
-            );
-
-        // Do NOT delete this using block!
-        using (var reader = new StreamReader(cryptoStream))
-        {
             logger.LogDebug(
-                "The '{t1}' service is writing plain text",
+                "The '{t1}' service is generating an AES algorithm instance",
                 nameof(CryptoService)
                 );
 
-            var plainText = reader.ReadToEnd();
+            using var alg = Aes.Create();
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and block sizes for AES",
+                nameof(CryptoService)
+                );
+
+            alg.KeySize = 256;
+            alg.BlockSize = 128;
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and IV values for AES",
+                nameof(CryptoService)
+                );
+
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
+
+            logger.LogDebug(
+                "The '{t1}' service is converting '{t2}' encrypted characters " +
+                "from base64",
+                nameof(CryptoService),
+                cipherValue.Length
+                );
+
+            var cipherBytes = Convert.FromBase64String(
+                cipherValue
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is creating a decryptor",
+                nameof(CryptoService)
+                );
+
+            using var decryptor = alg.CreateDecryptor();
+
+            logger.LogDebug(
+                "The '{t1}' service is decrypting '{t2}' bytes",
+                nameof(CryptoService),
+                cipherBytes.Length
+                );
+
+            var plainBytes = decryptor.TransformFinalBlock(
+                cipherBytes,
+                0,
+                cipherBytes.Length
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is converting '{t2}' bytes to a string",
+                nameof(CryptoService),
+                plainBytes.Length
+                );
+
+            var plainText = UTF8Encoding.UTF8.GetString(
+                plainBytes
+                );
+
+            logger.LogDebug(
+                "The '{t1}' service is returning '{t2}' decrypted characters",
+                nameof(CryptoService),
+                plainText.Length
+                );
 
             return Task.FromResult(plainText);
         }
-    }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "The '{t1}' service failed to decrypt a string value!",
+                nameof(CryptoService)
+                );
 
-    // *******************************************************************
-
-    /// <inheritdoc/>
-    public async Task<string> AesDecryptAsync(
-        [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] string? value,
-        CancellationToken cancellationToken = default
-        )
-    {
-        return await AesDecryptAsync(
-            keyAndIV.Key,
-            keyAndIV.IV,
-            value,
-            cancellationToken
-            ).ConfigureAwait(false);
+            throw new ServiceException(
+                innerException: ex,
+                message: "Failed to decrypt a string value!"
+                );
+        }
     }
 
     #endregion
+
 }
