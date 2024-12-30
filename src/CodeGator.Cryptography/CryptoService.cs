@@ -116,8 +116,8 @@ internal sealed class CryptoService(
 
     /// <inheritdoc/>
     public Task<KeyAndIV> GenerateKeyAndIVAsync(
-        [NotNull] string hashAlgorithmName,
-        int rfc2898Iterations,
+        [NotNull] string hashAlgorithmName = "SHA512",
+        int rfc2898Iterations = 15000,
         CancellationToken cancellationToken = default
         )
     {
@@ -213,7 +213,7 @@ internal sealed class CryptoService(
     public async Task<byte[]> AesEncryptAsync(
         [NotNull] byte[] key,
         [NotNull] byte[] iv,
-        [AllowNull] byte[]? value,
+        [AllowNull] byte[] value,
         CancellationToken cancellationToken = default
         )
     {
@@ -323,7 +323,7 @@ internal sealed class CryptoService(
     public async Task<byte[]> AesDecryptAsync(
         [NotNull] byte[] key,
         [NotNull] byte[] iv,
-        [AllowNull] byte[]? value,
+        [AllowNull] byte[] value,
         CancellationToken cancellationToken = default
         )
     {
@@ -434,7 +434,7 @@ internal sealed class CryptoService(
     /// <inheritdoc/>
     public async Task<byte[]> AesDecryptAsync(
         [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[]? value,
+        [AllowNull] byte[] value,
         CancellationToken cancellationToken = default
         )
     {
@@ -576,7 +576,7 @@ internal sealed class CryptoService(
     /// <inheritdoc/>
     public async Task<byte[]> AesEncryptAsync(
         [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[]? value,
+        [AllowNull] byte[] value,
         CancellationToken cancellationToken = default
         )
     {
