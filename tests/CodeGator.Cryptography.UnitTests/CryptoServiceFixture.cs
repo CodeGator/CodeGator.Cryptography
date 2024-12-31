@@ -30,7 +30,7 @@ public sealed class CryptoServiceFixture
             logger.Object
             );
 
-        var keyAndIV = await service.GenerateRandomKeyAsync(
+        var keyAndIV = await service.GenerateKeyAndIVAsync(
             "super secret password"
             );
 
@@ -73,7 +73,7 @@ public sealed class CryptoServiceFixture
             logger.Object
             );
 
-        var keyAndIV = await service.GenerateRandomKeyAsync(
+        var keyAndIV = await service.GenerateKeyAndIVAsync(
             "super secret password"
             );
 
@@ -112,7 +112,7 @@ public sealed class CryptoServiceFixture
             logger.Object
             );
 
-        var keyAndIV = await service.GenerateRandomKeyAsync(
+        var keyAndIV = await service.GenerateKeyAndIVAsync(
             "super secret password"
             );
 

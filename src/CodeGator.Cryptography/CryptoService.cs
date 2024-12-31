@@ -20,7 +20,7 @@ internal sealed class CryptoService(
     #region Key and IV methods
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateRandomKeyAsync(
+    public Task<KeyAndIV> GenerateKeyAndIVAsync(
         CancellationToken cancellationToken = default
         )
     {
@@ -65,7 +65,7 @@ internal sealed class CryptoService(
     // *******************************************************************
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateRandomKeyAsync(
+    public Task<KeyAndIV> GenerateKeyAndIVAsync(
         [NotNull] string password,
         [NotNull] string hashAlgorithmName = "SHA512",
         int rfc2898Iterations = 10000,
@@ -176,7 +176,7 @@ internal sealed class CryptoService(
     // *******************************************************************
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateRandomKeyAsync(
+    public Task<KeyAndIV> GenerateKeyAndIVAsync(
         [NotNull] string password,
         [NotNull] string salt,
         [NotNull] string hashAlgorithmName = "SHA512",

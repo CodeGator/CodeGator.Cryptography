@@ -15,7 +15,7 @@ public interface ICryptoService
     /// object.</returns>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete the operation.</exception>
-    Task<KeyAndIV> GenerateRandomKeyAsync(
+    Task<KeyAndIV> GenerateKeyAndIVAsync(
         CancellationToken cancellationToken = default
         );
 
@@ -35,7 +35,7 @@ public interface ICryptoService
     /// one or more arguments is missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete the operation.</exception>
-    Task<KeyAndIV> GenerateRandomKeyAsync(
+    Task<KeyAndIV> GenerateKeyAndIVAsync(
         [NotNull] string password,
         [NotNull] string hashAlgorithmName = "SHA512",
         int rfc2898Iterations = 10000,
@@ -59,7 +59,7 @@ public interface ICryptoService
     /// one or more arguments is missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete the operation.</exception>
-    Task<KeyAndIV> GenerateRandomKeyAsync(
+    Task<KeyAndIV> GenerateKeyAndIVAsync(
         [NotNull] string password,
         [NotNull] string salt,
         [NotNull] string hashAlgorithmName = "SHA512",
