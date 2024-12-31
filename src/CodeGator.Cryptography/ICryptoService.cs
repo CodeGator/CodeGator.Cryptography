@@ -20,8 +20,9 @@ public interface ICryptoService
         );
 
     /// <summary>
-    /// This method generates a <see cref="KeyAndIV"/> object from the given 
-    /// password.
+    /// This method generates a <see cref="KeyAndIV"/> object containing a Key
+    /// and IV that are generated using the RFC2898 algorithm with a the given
+    /// password and a random SALT value.
     /// </summary>
     /// <param name="password">The password to use for the operation.</param>
     /// <param name="hashAlgorithmName">The hash algorithm to use for the operation.</param>
@@ -34,7 +35,7 @@ public interface ICryptoService
     /// one or more arguments is missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete the operation.</exception>
-    Task<KeyAndIV> GenerateKeyFromPasswordAsync(
+    Task<KeyAndIV> GenerateRandomKeyAsync(
         [NotNull] string password,
         [NotNull] string hashAlgorithmName = "SHA512",
         int rfc2898Iterations = 10000,
@@ -42,8 +43,9 @@ public interface ICryptoService
         );
 
     /// <summary>
-    /// This method generates a <see cref="KeyAndIV"/> object from the given 
-    /// password and salt.
+    /// This method generates a <see cref="KeyAndIV"/> object containing a Key
+    /// and IV that are generated using the RFC2898 algorithm with the given 
+    /// password and SALT value.
     /// </summary>
     /// <param name="password">The password to use for the operation.</param>
     /// <param name="salt">The salt to use for the operation.</param>
@@ -57,7 +59,7 @@ public interface ICryptoService
     /// one or more arguments is missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete the operation.</exception>
-    Task<KeyAndIV> GenerateKeyFromPasswordAndSaltAsync(
+    Task<KeyAndIV> GenerateRandomKeyAsync(
         [NotNull] string password,
         [NotNull] string salt,
         [NotNull] string hashAlgorithmName = "SHA512",
@@ -134,6 +136,54 @@ public interface ICryptoService
     Task<string> AesDecryptAsync(
         [NotNull] KeyAndIV keyAndIV,
         [AllowNull] string cipherText,
+        CancellationToken cancellationToken = default
+        );
+
+    /// <summary>
+    /// This method encrypts the given stream using AES.
+    /// </summary>
+    /// <param name="keyAndIV">The key and IV to use for the operation.</param>
+    /// <param name="plainStream">The (incoming) plain stream to use for the operation.</param>
+    /// <param name="cypherStream">The (outgoing) cypher stream to use for the operation.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A task to perform the operation.</returns>
+    /// <exception cref="ArgumentException">This exception is thrown whenever
+    /// one or more arguments are missing, or invalid.</exception>
+    /// <exception cref="ServiceException">This exception is thrown 
+    /// whenever the service fails to complete properly.</exception>
+    /// <remarks>
+    /// <para>
+    /// The incoming and outgoing streams are not repositioned or closed by this method.
+    /// </para>
+    /// </remarks>
+    Task AesEncryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [NotNull] Stream plainStream,
+        [NotNull] Stream cypherStream,
+        CancellationToken cancellationToken = default
+        );
+
+    /// <summary>
+    /// This method decrypts the given stream using AES.
+    /// </summary>
+    /// <param name="keyAndIV">The key and IV to use for the operation.</param>
+    /// <param name="cypherStream">The (incoming) cypher stream to use for the operation.</param>
+    /// <param name="plainStream">The (outgoing) plain stream to use for the operation.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A task to perform the operation.</returns>
+    /// <exception cref="ArgumentException">This exception is thrown whenever
+    /// one or more arguments are missing, or invalid.</exception>
+    /// <exception cref="ServiceException">This exception is thrown 
+    /// whenever the service fails to complete properly.</exception>
+    /// <remarks>
+    /// <para>
+    /// The incoming and outgoing streams are not repositioned or closed by this method.
+    /// </para>
+    /// </remarks>
+    Task AesDecryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [NotNull] Stream cypherStream,
+        [NotNull] Stream plainStream,        
         CancellationToken cancellationToken = default
         );
 }

@@ -65,7 +65,7 @@ internal sealed class CryptoService(
     // *******************************************************************
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateKeyFromPasswordAsync(
+    public Task<KeyAndIV> GenerateRandomKeyAsync(
         [NotNull] string password,
         [NotNull] string hashAlgorithmName = "SHA512",
         int rfc2898Iterations = 10000,
@@ -176,7 +176,7 @@ internal sealed class CryptoService(
     // *******************************************************************
 
     /// <inheritdoc/>
-    public Task<KeyAndIV> GenerateKeyFromPasswordAndSaltAsync(
+    public Task<KeyAndIV> GenerateRandomKeyAsync(
         [NotNull] string password,
         [NotNull] string salt,
         [NotNull] string hashAlgorithmName = "SHA512",
@@ -691,6 +691,220 @@ internal sealed class CryptoService(
             throw new ServiceException(
                 innerException: ex,
                 message: "Failed to decrypt a string value!"
+                );
+        }
+    }
+
+    #endregion
+
+    // *******************************************************************
+    // Stream methods.
+    // *******************************************************************
+
+    #region Stream methods
+
+    /// <inheritdoc/>
+    public async Task AesEncryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [NotNull] Stream plainStream,
+        [NotNull] Stream cypherStream,
+        CancellationToken cancellationToken = default
+        )
+    {
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV))
+            .ThrowIfNull(plainStream, nameof(plainStream))
+            .ThrowIfNull(cypherStream, nameof(cypherStream));
+
+        try
+        {
+            if (plainStream.Length == 0)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is returning because the plain " +
+                    "stream was empty.",
+                    nameof(CryptoService)
+                    );
+                return;
+            }
+
+            logger.LogDebug(
+                "The '{t1}' service is generating an AES algorithm instance",
+                nameof(CryptoService)
+                );
+
+            using var alg = Aes.Create();
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and block sizes for AES",
+                nameof(CryptoService)
+                );
+
+            alg.KeySize = 256;
+            alg.BlockSize = 128;
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and IV values for AES",
+                nameof(CryptoService)
+                );
+
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
+
+            logger.LogDebug(
+                "The '{t1}' service is creating an encryptor",
+                nameof(CryptoService)
+                );
+
+            using var encryptor = alg.CreateEncryptor();
+
+            logger.LogDebug(
+                "The '{t1}' service is creating a crypto stream",
+                nameof(CryptoService)
+                );
+
+            using (var cryptoStream = new CryptoStream(
+                        plainStream,
+                        encryptor,
+                        CryptoStreamMode.Read,
+                        true
+                        ))
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is copying bytes from the cryptography stream",
+                    nameof(CryptoService)
+                    );
+
+                await cryptoStream.CopyToAsync(
+                    cypherStream
+                    ).ConfigureAwait(false);
+            }
+
+            logger.LogDebug(
+                "The '{t1}' service is flushing the cypher stream",
+                nameof(CryptoService)
+                );
+
+            await cypherStream.FlushAsync(
+                cancellationToken
+                ).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "The '{t1}' service failed to encrypt a stream value!",
+                nameof(CryptoService)
+                );
+
+            throw new ServiceException(
+                innerException: ex,
+                message: "Failed to encrypt a stream value!"
+                );
+        }
+    }
+
+    // *******************************************************************
+
+    /// <inheritdoc/>
+    public async Task AesDecryptAsync(
+        [NotNull] KeyAndIV keyAndIV,
+        [NotNull] Stream cypherStream,
+        [NotNull] Stream plainStream,
+        CancellationToken cancellationToken = default
+        )
+    {
+        Guard.Instance().ThrowIfNull(keyAndIV, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.Key.LongLength == 32, nameof(keyAndIV))
+            .ThrowIfFalse(keyAndIV.IV.LongLength == 16, nameof(keyAndIV))
+            .ThrowIfNull(cypherStream, nameof(cypherStream))
+            .ThrowIfNull(plainStream, nameof(plainStream));
+
+        try
+        {
+            if (cypherStream.Length == 0)
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is returning because the cypher " +
+                    "stream was empty.",
+                    nameof(CryptoService)
+                    );
+                return;
+            }
+
+            logger.LogDebug(
+                "The '{t1}' service is generating an AES algorithm instance",
+                nameof(CryptoService)
+                );
+
+            using var alg = Aes.Create();
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and block sizes for AES",
+                nameof(CryptoService)
+                );
+
+            alg.KeySize = 256;
+            alg.BlockSize = 128;
+
+            logger.LogDebug(
+                "The '{t1}' service is setting the key and IV values for AES",
+                nameof(CryptoService)
+                );
+
+            alg.Key = keyAndIV.Key;
+            alg.IV = keyAndIV.IV;
+
+            logger.LogDebug(
+                "The '{t1}' service is creating an encryptor",
+                nameof(CryptoService)
+                );
+
+            using var decryptor = alg.CreateDecryptor();
+
+            logger.LogDebug(
+                "The '{t1}' service is creating a crypto stream",
+                nameof(CryptoService)
+                );
+
+            using (var cryptoStream = new CryptoStream(
+                        plainStream,
+                        decryptor,
+                        CryptoStreamMode.Write,
+                        true
+                        ))
+            {
+                logger.LogDebug(
+                    "The '{t1}' service is copying bytes from the cypher stream",
+                    nameof(CryptoService)
+                    );
+
+                await cypherStream.CopyToAsync(
+                    cryptoStream
+                    ).ConfigureAwait(false);
+            }
+
+            logger.LogDebug(
+                "The '{t1}' service is flushing the plain stream",
+                nameof(CryptoService)
+                );
+
+            await plainStream.FlushAsync(
+                cancellationToken
+                ).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "The '{t1}' service failed to decrypt a stream value!",
+                nameof(CryptoService)
+                );
+
+            throw new ServiceException(
+                innerException: ex,
+                message: "Failed to decrypt a stream value!"
                 );
         }
     }
