@@ -71,7 +71,7 @@ public interface ICryptoService
     /// This method encrypts the given bytes using AES.
     /// </summary>
     /// <param name="keyAndIV">The key and IV to use for the operation.</param>
-    /// <param name="plainValue">The plain value to use for the operation.</param>
+    /// <param name="plainBytes">The plain value to use for the operation.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A task to perform the operation that returns the encrypted 
     /// bytes.</returns>
@@ -81,7 +81,7 @@ public interface ICryptoService
     /// whenever the service fails to complete properly.</exception>
     Task<byte[]> AesEncryptAsync(
         [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[] plainValue,
+        [AllowNull] byte[] plainBytes,
         CancellationToken cancellationToken = default
         );
 
@@ -89,7 +89,7 @@ public interface ICryptoService
     /// This method decrypts the given bytes using AES.
     /// </summary>
     /// <param name="keyAndIV">The key and IV to use for the operation.</param>
-    /// <param name="cipherValue">The cypher value to use for the operation.</param>
+    /// <param name="cipherBytes">The cypher value to use for the operation.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A task to perform the operation that returns the decrypted 
     /// bytes.</returns>
@@ -99,7 +99,7 @@ public interface ICryptoService
     /// whenever the service fails to complete properly.</exception>
     Task<byte[]> AesDecryptAsync(
         [NotNull] KeyAndIV keyAndIV,
-        [AllowNull] byte[] cipherValue,
+        [AllowNull] byte[] cipherBytes,
         CancellationToken cancellationToken = default
         );
 
