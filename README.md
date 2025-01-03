@@ -3,6 +3,10 @@
 
 [![Build Status](https://dev.azure.com/codegator/CodeGator.Cryptography/_apis/build/status%2FCodeGator.CodeGator.Cryptography?branchName=main)](https://dev.azure.com/codegator/CodeGator.Cryptography/_build/latest?definitionId=119&branchName=main)
 
+![NuGet Version](https://img.shields.io/nuget/v/CodeGator.Cryptography)
+
+![NuGet Downloads](https://img.shields.io/nuget/dt/CodeGator.Cryptography)
+
 #### What does it do?
 This package contains cryptography services used by various CodeGator solutions.
 
