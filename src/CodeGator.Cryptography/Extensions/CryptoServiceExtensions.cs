@@ -83,7 +83,7 @@ public static partial class CryptoServiceExtensions
             IV = iv
         };
 
-        return cryptoService.AesEncryptAsync(
+        return cryptoService.AesDecryptAsync(
             keyAndIV,
             cypherBytes,
             cancellationToken
@@ -167,7 +167,7 @@ public static partial class CryptoServiceExtensions
             IV = iv
         };
 
-        return cryptoService.AesEncryptAsync(
+        return cryptoService.AesDecryptAsync(
             keyAndIV,
             cypherText,
             cancellationToken
@@ -264,7 +264,7 @@ public static partial class CryptoServiceExtensions
             IV = iv
         };
 
-        return cryptoService.AesEncryptAsync(
+        return cryptoService.AesDecryptAsync(
             keyAndIV,
             cypherStream,
             plainStream,
