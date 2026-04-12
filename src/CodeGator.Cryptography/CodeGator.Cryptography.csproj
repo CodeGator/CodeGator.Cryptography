@@ -9,6 +9,8 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/CodeGator/CodeGator.Cryptography</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/CodeGator/CodeGator.Cryptography</RepositoryUrl>
+		<Title>CodeGator Cyptography</Title>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,6 +27,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="..\..\LICENSE.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	  <None Include="..\..\packageDefaultIcon-128x128.png">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
