@@ -4,11 +4,15 @@ using Microsoft.Extensions.Hosting;
 namespace CodeGator.Cryptography;
 
 /// <summary>
-/// Unit tests for <see cref="HostApplicationBuilderExtensions"/>.
+/// This class contains unit tests for <see cref="HostApplicationBuilderExtensions"/>.
 /// </summary>
 [TestClass]
 public sealed class HostApplicationBuilderExtensionsTests
 {
+    /// <summary>
+    /// This method verifies DI registration for crypto service and RNG types.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AddCodeGatorCryptography_RegistersCryptoServiceAndRandomNumberGenerator()
@@ -27,6 +31,10 @@ public sealed class HostApplicationBuilderExtensionsTests
         Assert.IsNotNull(rng);
     }
 
+    /// <summary>
+    /// This method verifies a resolved <see cref="ICryptoService"/> can generate keys.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AddCodeGatorCryptography_ResolvedService_GeneratesKeyAndIV()

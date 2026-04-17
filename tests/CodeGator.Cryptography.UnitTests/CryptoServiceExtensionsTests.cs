@@ -2,11 +2,15 @@
 namespace CodeGator.Cryptography;
 
 /// <summary>
-/// Unit tests for <see cref="CryptoServiceExtensions"/>.
+/// This class contains unit tests for <see cref="CryptoServiceExtensions"/>.
 /// </summary>
 [TestClass]
 public sealed class CryptoServiceExtensionsTests
 {
+    /// <summary>
+    /// This method creates a service and key material for extension tests.
+    /// </summary>
+    /// <returns>The service and a derived <see cref="KeyAndIV"/>.</returns>
     private static (ICryptoService Service, KeyAndIV KeyAndIV) CreateServiceWithKey()
     {
         var logger = new Mock<ILogger<CryptoService>>();
@@ -19,6 +23,10 @@ public sealed class CryptoServiceExtensionsTests
         return (service, keyAndIV);
     }
 
+    /// <summary>
+    /// This method verifies byte-array extension overloads round-trip correctly.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task Extension_ByteArray_EncryptDecrypt_RoundTrips()
@@ -41,6 +49,10 @@ public sealed class CryptoServiceExtensionsTests
         CollectionAssert.AreEqual(original, plain);
     }
 
+    /// <summary>
+    /// This method verifies string extension overloads round-trip correctly.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task Extension_String_EncryptDecrypt_RoundTrips()
@@ -63,6 +75,10 @@ public sealed class CryptoServiceExtensionsTests
         Assert.AreEqual(original, plain);
     }
 
+    /// <summary>
+    /// This method verifies stream extension overloads round-trip correctly.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task Extension_Stream_EncryptDecrypt_RoundTrips()
@@ -94,6 +110,10 @@ public sealed class CryptoServiceExtensionsTests
         CollectionAssert.AreEqual(originalStream.ToArray(), plainStream.ToArray());
     }
 
+    /// <summary>
+    /// This method verifies a null service throws <see cref="ArgumentNullException"/>.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task Extension_NullService_ThrowsArgumentNullException()

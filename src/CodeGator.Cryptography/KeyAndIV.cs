@@ -6,23 +6,20 @@ namespace CodeGator.Cryptography;
 /// </summary>
 public class KeyAndIV
 {
-    // *******************************************************************
-    // Properties.
-    // *******************************************************************
-
-    #region Properties
 
     /// <summary>
-    /// This property contains a cryptographic key.
+    /// This property holds the AES key bytes for operations on this service.
     /// </summary>
     [Required]
     public byte[] Key { get; set; } = null!;
 
     /// <summary>
-    /// This property contains a cryptographic initialization vector.
+    /// This property holds the AES IV for operations on this service.
     /// </summary>
+    /// <remarks>
+    /// <para>Stores the 128-bit block initialization vector used with the key.</para>
+    /// </remarks>
     [Required]
     public byte[] IV { get; set; } = null!;
 
-    #endregion
 }

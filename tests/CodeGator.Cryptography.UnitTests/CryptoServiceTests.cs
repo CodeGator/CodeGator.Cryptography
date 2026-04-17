@@ -2,11 +2,15 @@
 namespace CodeGator.Cryptography;
 
 /// <summary>
-/// Unit tests for <see cref="CryptoService"/> behavior beyond round-trip encrypt/decrypt.
+/// This class contains unit tests for <see cref="CryptoService"/>.
 /// </summary>
 [TestClass]
 public sealed class CryptoServiceTests
 {
+    /// <summary>
+    /// This method creates a <see cref="CryptoService"/> with a mocked logger.
+    /// </summary>
+    /// <returns>A crypto service instance for tests.</returns>
     private static CryptoService CreateService()
     {
         var logger = new Mock<ILogger<CryptoService>>();
@@ -18,6 +22,10 @@ public sealed class CryptoServiceTests
 
     #region Key generation
 
+    /// <summary>
+    /// This method verifies random key generation uses AES-256 key and IV sizes.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task GenerateKeyAndIV_Random_ReturnsAes256KeyAndBlockSizedIv()
@@ -30,6 +38,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(16, keyAndIV.IV.Length);
     }
 
+    /// <summary>
+    /// This method verifies password-and-salt key derivation is deterministic.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task GenerateKeyAndIV_WithPasswordAndSalt_IsDeterministic()
@@ -54,6 +66,10 @@ public sealed class CryptoServiceTests
         CollectionAssert.AreEqual(first.IV, second.IV);
     }
 
+    /// <summary>
+    /// This method verifies iteration counts below the minimum map to 10,000.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task GenerateKeyAndIV_IterationsBelowMinimum_UseTenThousand()
@@ -78,6 +94,10 @@ public sealed class CryptoServiceTests
         CollectionAssert.AreEqual(withTenThousand.IV, withLowIterations.IV);
     }
 
+    /// <summary>
+    /// This method verifies a null password throws <see cref="ArgumentException"/>.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task GenerateKeyAndIV_NullPassword_ThrowsArgumentException()
@@ -97,6 +117,10 @@ public sealed class CryptoServiceTests
 
     #region AES bytes and strings
 
+    /// <summary>
+    /// This method verifies null or empty plain bytes yield an empty ciphertext.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesEncrypt_NullOrEmptyPlainBytes_ReturnsEmptyArray()
@@ -111,6 +135,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(0, emptyResult.Length);
     }
 
+    /// <summary>
+    /// This method verifies null or empty cipher bytes yield an empty plaintext.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesDecrypt_NullOrEmptyCipherBytes_ReturnsEmptyArray()
@@ -125,6 +153,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(0, emptyResult.Length);
     }
 
+    /// <summary>
+    /// This method verifies null or empty plain text yields an empty ciphertext.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesEncrypt_NullOrEmptyPlainText_ReturnsEmptyString()
@@ -139,6 +171,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(string.Empty, emptyResult);
     }
 
+    /// <summary>
+    /// This method verifies null or empty cipher text yields an empty plaintext.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesDecrypt_NullOrEmptyCipherText_ReturnsEmptyString()
@@ -153,6 +189,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(string.Empty, emptyResult);
     }
 
+    /// <summary>
+    /// This method verifies an invalid key length throws <see cref="ArgumentException"/>.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesEncrypt_InvalidKeyLength_ThrowsArgumentException()
@@ -169,6 +209,10 @@ public sealed class CryptoServiceTests
             );
     }
 
+    /// <summary>
+    /// This method verifies invalid Base64 throws <see cref="ServiceException"/>.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesDecrypt_InvalidBase64_ThrowsServiceException()
@@ -187,6 +231,10 @@ public sealed class CryptoServiceTests
 
     #region Streams
 
+    /// <summary>
+    /// This method verifies encrypting an empty plain stream writes no output.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesEncrypt_EmptyPlainStream_DoesNotWriteOutput()
@@ -202,6 +250,10 @@ public sealed class CryptoServiceTests
         Assert.AreEqual(0, cipher.Length);
     }
 
+    /// <summary>
+    /// This method verifies decrypting an empty cipher stream leaves plain empty.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task AesDecrypt_EmptyCipherStream_LeavesPlainStreamEmpty()

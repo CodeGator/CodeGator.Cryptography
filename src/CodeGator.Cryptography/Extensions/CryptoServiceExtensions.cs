@@ -3,16 +3,11 @@
 namespace CodeGator.Cryptography;
 
 /// <summary>
-/// This class utility contains extension methods related to the <see cref="ICryptoService"/>
-/// type.
+/// This class contains extension methods for <see cref="ICryptoService"/>.
 /// </summary>
 public static partial class CryptoServiceExtensions
 {
-    // *******************************************************************
     // Byte array methods.
-    // *******************************************************************
-
-    #region Byte array methods
 
     /// <summary>
     /// This method encrypts the given bytes using AES.
@@ -28,6 +23,8 @@ public static partial class CryptoServiceExtensions
     /// one or more arguments are missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete properly.</exception>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task<byte[]> AesEncryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -51,8 +48,6 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    // *******************************************************************
-
     /// <summary>
     /// This method decrypts the given bytes using AES.
     /// </summary>
@@ -67,6 +62,8 @@ public static partial class CryptoServiceExtensions
     /// one or more arguments are missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete properly.</exception>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task<byte[]> AesDecryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -90,13 +87,7 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    #endregion
-
-    // *******************************************************************
     // String methods.
-    // *******************************************************************
-
-    #region String methods
 
     /// <summary>
     /// This method encrypts the given string using AES.
@@ -112,6 +103,8 @@ public static partial class CryptoServiceExtensions
     /// one or more arguments are missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete properly.</exception>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task<string> AesEncryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -135,8 +128,6 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    // *******************************************************************
-
     /// <summary>
     /// This method decrypts the given string using AES.
     /// </summary>
@@ -151,6 +142,8 @@ public static partial class CryptoServiceExtensions
     /// one or more arguments are missing, or invalid.</exception>
     /// <exception cref="ServiceException">This exception is thrown 
     /// whenever the service fails to complete properly.</exception>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task<string> AesDecryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -174,13 +167,7 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    #endregion
-
-    // *******************************************************************
     // Stream methods.
-    // *******************************************************************
-
-    #region Stream methods
 
     /// <summary>
     /// This method encrypts the given stream using AES.
@@ -201,6 +188,8 @@ public static partial class CryptoServiceExtensions
     /// The incoming and outgoing streams are not repositioned or closed by this method.
     /// </para>
     /// </remarks>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task AesEncryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -226,8 +215,6 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    // *******************************************************************
-
     /// <summary>
     /// This method decrypts the given stream using AES.
     /// </summary>
@@ -247,6 +234,8 @@ public static partial class CryptoServiceExtensions
     /// The incoming and outgoing streams are not repositioned or closed by this method.
     /// </para>
     /// </remarks>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="cryptoService"/> is <see langword="null"/>.</exception>
     public static Task AesDecryptAsync(
         [NotNull] this ICryptoService cryptoService,
         [NotNull] byte[] key,
@@ -272,5 +261,4 @@ public static partial class CryptoServiceExtensions
             );
     }
 
-    #endregion
 }

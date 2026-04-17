@@ -4,31 +4,26 @@ namespace Microsoft.Extensions.Hosting;
 #pragma warning restore IDE0130
 
 /// <summary>
-/// This class contains extension methods related to the <see cref="IHostApplicationBuilder"/>
-/// type.
+/// This class contains extension methods for <see cref="IHostApplicationBuilder"/>.
 /// </summary>
 public static partial class HostApplicationBuilderExtensions
 {
-    // *******************************************************************
-    // Public methods.
-    // *******************************************************************
-
-    #region Public methods
 
     /// <summary>
-    /// This method adds the types required to support the <c>CodeGator</c>
-    /// <see cref="ICryptoService"/> type.
+    /// This method registers CodeGator cryptography services on the builder.
     /// </summary>
-    /// <typeparam name="T">The type of application builder to use for the 
-    /// operation.</typeparam>
-    /// <param name="webApplicationBuilder">The web application builder to
-    /// use for the operation.</param>
-    /// <param name="bootstrapLogger">An optional bootstrap logger to use 
-    /// for the operation.</param>
-    /// <returns>The value of the <paramref name="webApplicationBuilder"/>
-    /// parameter, for chaining calls together, Fluent style.</returns>
-    /// <exception cref="ArgumentException">This exception is thrown whenever
-    /// one or more arguments are missing, or invalid.</exception>
+    /// <remarks>
+    /// <para>
+    /// Registers <see cref="ICryptoService"/> as <see cref="CryptoService"/> and a
+    /// singleton <see cref="RandomNumberGenerator"/> for cryptographic operations.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="T">The application builder type.</typeparam>
+    /// <param name="webApplicationBuilder">The host application builder.</param>
+    /// <param name="bootstrapLogger">Optional logger for registration diagnostics.</param>
+    /// <returns><paramref name="webApplicationBuilder"/> for fluent chaining.</returns>
+    /// <exception cref="ArgumentNullException">This exception is thrown when
+    /// <paramref name="webApplicationBuilder"/> is <see langword="null"/>.</exception>
     public static T AddCodeGatorCryptography<T>(
         [NotNull] this T webApplicationBuilder,
         [AllowNull] ILogger? bootstrapLogger = null
@@ -54,5 +49,4 @@ public static partial class HostApplicationBuilderExtensions
         return webApplicationBuilder;
     }
 
-    #endregion
 }

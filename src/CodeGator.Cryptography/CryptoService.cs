@@ -1,24 +1,17 @@
-﻿
+
 namespace CodeGator.Cryptography;
 
 /// <summary>
 /// This class is a default implementation of the <see cref="ICryptoService"/>
 /// interface.
 /// </summary>
-/// <param name="randomNumberGenerator">The random number generator to use 
-/// with this service.</param>
-/// <param name="logger">The logger to use with this service.</param>
+/// <param name="randomNumberGenerator">The RNG used for salt and key material.</param>
+/// <param name="logger">The logger used for diagnostic messages.</param>
 internal sealed class CryptoService(
     [NotNull] RandomNumberGenerator randomNumberGenerator,
     [NotNull] ILogger<CryptoService> logger
     ) : ICryptoService
 {
-    // *******************************************************************
-    // Key and IV methods.
-    // *******************************************************************
-
-    #region Key and IV methods
-
     /// <inheritdoc/>
     public Task<KeyAndIV> GenerateKeyAndIVAsync(
         CancellationToken cancellationToken = default
@@ -61,8 +54,6 @@ internal sealed class CryptoService(
                 );
         }
     }
-
-    // *******************************************************************
 
     /// <inheritdoc/>
     public Task<KeyAndIV> GenerateKeyAndIVAsync(
@@ -173,8 +164,6 @@ internal sealed class CryptoService(
         }
     }
 
-    // *******************************************************************
-
     /// <inheritdoc/>
     public Task<KeyAndIV> GenerateKeyAndIVAsync(
         [NotNull] string password,
@@ -282,13 +271,7 @@ internal sealed class CryptoService(
         }
     }
 
-    #endregion
-
-    // *******************************************************************
     // Byte array methods.
-    // *******************************************************************
-
-    #region Byte array methods
 
     /// <inheritdoc/>
     public Task<byte[]> AesEncryptAsync(
@@ -378,8 +361,6 @@ internal sealed class CryptoService(
         }
     }
 
-    // *******************************************************************
-
     /// <inheritdoc/>
     public Task<byte[]> AesDecryptAsync(
         [NotNull] KeyAndIV keyAndIV,
@@ -468,13 +449,7 @@ internal sealed class CryptoService(
         }
     }
 
-    #endregion
-
-    // *******************************************************************
     // String methods.
-    // *******************************************************************
-
-    #region String methods
 
     /// <inheritdoc/>
     public Task<string> AesEncryptAsync(
@@ -583,8 +558,6 @@ internal sealed class CryptoService(
                 );
         }
     }
-
-    // *******************************************************************
 
     /// <inheritdoc/>
     public Task<string> AesDecryptAsync(
@@ -695,13 +668,7 @@ internal sealed class CryptoService(
         }
     }
 
-    #endregion
-
-    // *******************************************************************
     // Stream methods.
-    // *******************************************************************
-
-    #region Stream methods
 
     /// <inheritdoc/>
     public async Task AesEncryptAsync(
@@ -805,8 +772,6 @@ internal sealed class CryptoService(
         }
     }
 
-    // *******************************************************************
-
     /// <inheritdoc/>
     public async Task AesDecryptAsync(
         [NotNull] KeyAndIV keyAndIV,
@@ -909,5 +874,4 @@ internal sealed class CryptoService(
         }
     }
 
-    #endregion
 }

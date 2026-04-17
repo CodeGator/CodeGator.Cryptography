@@ -15,10 +15,12 @@ public sealed class CryptoServiceFixture
     #region Public methods
 
     /// <summary>
-    /// This method ensures the <see cref="CryptoService"/> class can correctly
-    /// encrypt and decrypt a byte array.
+    /// This method verifies byte array encryption and decryption round-trip.
     /// </summary>
-    /// <returns>A task to perform the operation.</returns>
+    /// <remarks>
+    /// <para>Exercises <see cref="CryptoService"/> with a password-derived key.</para>
+    /// </remarks>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task EncryptDecryptBytesWorksTogether()
@@ -58,10 +60,12 @@ public sealed class CryptoServiceFixture
     // *******************************************************************
 
     /// <summary>
-    /// This method ensures the <see cref="CryptoService"/> class can correctly
-    /// encrypt and decrypt a string.
+    /// This method verifies string encryption and decryption round-trip.
     /// </summary>
-    /// <returns>A task to perform the operation.</returns>
+    /// <remarks>
+    /// <para>Exercises <see cref="CryptoService"/> with a password-derived key.</para>
+    /// </remarks>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task EncryptDecryptStringWorksTogether()
@@ -97,10 +101,12 @@ public sealed class CryptoServiceFixture
     // *******************************************************************
 
     /// <summary>
-    /// This method ensures the <see cref="CryptoService"/> class can correctly
-    /// encrypt and decrypt a stream.
+    /// This method verifies stream encryption and decryption round-trip.
     /// </summary>
-    /// <returns>A task to perform the operation.</returns>
+    /// <remarks>
+    /// <para>Exercises <see cref="CryptoService"/> with a password-derived key.</para>
+    /// </remarks>
+    /// <returns>A task that represents the asynchronous test operation.</returns>
     [TestCategory("Unit")]
     [TestMethod]
     public async Task EncryptDecryptStreamWorksTogether()
